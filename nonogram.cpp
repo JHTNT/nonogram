@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "file_io.h"
+#include "line_solve.h"
 
 int main() {
     in.open("data/one_testcase.in");
@@ -9,14 +10,11 @@ int main() {
 
     string testcase;
     vector<vector<short>> clues(SIZE * 2);
+    vector<vector<char>> board(SIZE, vector<char>(SIZE, 'u'));
 
     while (!in.fail() && in >> testcase) {
         out << testcase << "\n";
         get_testcase(clues);
-        for (auto c : clues) {
-            for (short i : c) out << i << " ";
-            out << "\n";
-        }
     }
     in.close();
     out.close();
