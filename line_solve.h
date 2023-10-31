@@ -15,27 +15,33 @@ string paint1(string_view s, const vector<short> &d, short i, short j);
 string merge(string_view s, string_view t);
 
 bool fix(string_view s, const vector<short> &d, short i, short j) {
-    if (i == 0 && j == 0) return true;
-    if (i == 0 && j >= 1) return false;
+    if (i == 0 || i == -1) {
+        if (j == 0)
+            return true;
+        return false;   // j >= 1
+    }
     return fix0(s, d, i, j) || fix1(s, d, i, j);
 }
 
 bool fix0(string_view s, const vector<short> &d, short i, short j) {
-    if (s[i - 1] == '0' || s[i - 1] == 'u') return fix(s, d, i - 1, j);
+    if (s[i] != '1') return fix(s, d, i - 1, j);
     return false;
 }
 
 bool fix1(string_view s, const vector<short> &d, short i, short j) {
-    if (j >= 1 && i >= d[j - 1] + 1 && s[i - d[j - 1] - 1] == '0') {
-        for (int k = i - d[j - 1]; k < i; k++)
+    if (j >= 1 && i >= d[j - 1]) {
+        for (int k = i - d[j - 1] + 1; k <= i; k++)
             if (s[k] == '0') return false;
-        return true;
+        if (i == 1 || s[i - d[j - 1]] != '1')
+            return fix(s, d, i - d[j - 1] - 1, j - 1);
+        else
+            return false;
     }
     return false;
 }
 
 string paint(string_view s, const vector<short> &d, short i, short j) {
-    if (i == 0) return "";
+    if (i <= 0) return "";
 
     bool f0 = fix0(s, d, i, j), f1 = fix1(s, d, i, j);
     if (f0 && !f1) {
@@ -52,6 +58,7 @@ string paint0(string_view s, const vector<short> &d, short i, short j) {
 }
 
 string paint1(string_view s, const vector<short> &d, short i, short j) {
+    if (i == d[j - 1]) return string(d[j - 1], '1');
     return paint(s, d, i - d[j - 1] - 1, j - 1) + '0' + string(d[j - 1], '1');
 }
 
