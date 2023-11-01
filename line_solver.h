@@ -16,9 +16,8 @@ string merge(string_view s, string_view t);
 
 bool fix(string_view s, const vector<short> &d, short i, short j) {
     if (i == 0 || i == -1) {
-        if (j == 0)
-            return true;
-        return false;   // j >= 1
+        if (j == 0) return true;
+        return false;  // j >= 1
     }
     return fix0(s, d, i, j) || fix1(s, d, i, j);
 }
