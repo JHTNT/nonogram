@@ -16,15 +16,16 @@ bool check_all_painted(const vector<string> &G) {
 }
 
 UpdateSet propagate(Board &G, const Clues &d, Status &status) {
-    UpdateSet PI;  // set of updated pixels
-    queue<string> list_G;
+    UpdateSet PI;                  // set of updated pixels
+    unordered_set<string> list_G;  // set of lines to be checked
 
-    for (int i = 0; i < SIZE * 2; i++) {
-        list_G.push(G[i]);
+    for (int i = 0; i < SIZE; i++) {
+        list_G.insert(G[i]);
     }
 
     while (!list_G.empty()) {
-        string_view s = list_G.front();
+        auto front = list_G.begin();
+        string s = *front;
         char index = s[0];
 
         if (!fix(s, d[index], SIZE, d[index].size())) {
@@ -36,18 +37,20 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
         s = s.substr(1);
         UpdateSet pi;
         for (int i = 0; i < SIZE; i++) {
-            if (p[i] != s[i]) {
-                pi.insert(index * 100 + (i - 1));
-                G[index][i] = p[i];
-                if (i <= SIZE) {
-                    list_G.push(G[i + SIZE - 1]);
+            if (s[i] == 'u' && p[i] != s[i]) {
+                pi.insert(index * 100 + i);
+                G[index][i + 1] = p[i];
+                if (index < SIZE) {
+                    G[i + SIZE][index + 1] = p[i];
+                    list_G.insert(G[i + SIZE]);
                 } else {
-                    list_G.push(G[i - SIZE - 1]);
+                    G[i][index - SIZE + 1] = p[i];
+                    list_G.insert(G[i]);
                 }
             }
         }
-        PI.insert(pi.begin(), pi.end());
-        list_G.pop();
+        if (!pi.empty()) PI.insert(pi.begin(), pi.end());
+        list_G.erase(front);
     }
 
     if (check_all_painted(G))
