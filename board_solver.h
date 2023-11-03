@@ -98,4 +98,24 @@ UpdateSet probe(Board &G, const Clues &d, char row, char col, Status &status) {
     return pi;
 }
 
+void fp1(Board &G, const Clues &d, Status &status) {
+    UpdateSet pi;
+    do {
+        pi = propagate(G, d, status);
+        if (status == CONFLICT || status == SOLVED) return;
+
+        for (char i = 0; i < SIZE; i++) {
+            for (char j = 1; j <= SIZE; j++) {
+                if (G[i][j] == 'u') {
+                    pi = probe(G, d, i, j, status);
+                }
+                if (status == CONFLICT || status == SOLVED) return;
+                if (status == PAINTED) goto END_PROBE;
+            }
+        }
+    END_PROBE:
+        if (pi.empty()) break;
+    } while (!pi.empty());
+}
+
 #endif
