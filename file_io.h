@@ -10,9 +10,16 @@ ifstream in;
 ofstream out;
 
 void get_testcase(vector<vector<short>> &clues) {
-    short n, i = 0;
+    short n, i = SIZE;
     char c;
     while (i < SIZE * 2) {
+        in >> n;
+        clues[i].push_back(n);
+        in.get(c);
+        if (c == '\n') i++;
+    }
+    i = 0;
+    while (i < SIZE) {
         in >> n;
         clues[i].push_back(n);
         in.get(c);
