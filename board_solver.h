@@ -93,6 +93,10 @@ short probe(Board &G, const Clues &d, char row, char col, Status &status) {
         for (short p : pi) {
             char r = p / 100, c = p % 100;
             G[r][c + 1] = (*src)[r][c + 1];
+            if (r < SIZE)
+                G[c + SIZE][r + 1] = (*src)[r][c + 1];
+            else
+                G[c][r - SIZE + 1] = (*src)[r][c + 1];
         }
         status = Status::PAINTED;
     } else {
