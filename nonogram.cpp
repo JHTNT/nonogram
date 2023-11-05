@@ -21,7 +21,7 @@ int main() {
 
         clock_t s, e;
         s = clock();
-        fp1(board, clues, status);
+        backtracking(board, clues, status);
         e = clock();
 
         for (int i = 0; i < SIZE; i++) {
@@ -30,10 +30,13 @@ int main() {
             }
             out << '\n';
         }
-        out << "Time used: " << (double) (e - s) / CLOCKS_PER_SEC << " s\n";
-
-        in.close();
-        out.close();
-        return 0;
+        out << "Time used: " << (double) (e - s) / CLOCKS_PER_SEC << " s\n" << flush;
+        if (status == SOLVED)
+            cout << testcase << ": \033[92mSOLVED\033[0m\n";
+        else
+            cout << testcase << ": \033[91m" << const_status[status] << "\033[0m\n";
     }
+    in.close();
+    out.close();
+    return 0;
 }

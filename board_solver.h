@@ -7,6 +7,7 @@ typedef vector<vector<short>> Clues;
 typedef unordered_set<short> UpdateSet;
 
 enum Status { INCOMPLETE, CONFLICT, PAINTED, SOLVED };
+static string const_status[] = {"INCOMPLETE", "CONFLICT", "PAINTED", "SOLVED"};
 
 bool check_all_painted(const vector<string> &G) {
     for (int i = 0; i < SIZE; i++)
@@ -105,24 +106,61 @@ short probe(Board &G, const Clues &d, char row, char col, Status &status) {
     return pi.size();
 }
 
-void fp1(Board &G, const Clues &d, Status &status) {
-    UpdateSet pi;
+short fp1(Board &G, const Clues &d, Status &status) {
+    short pi_cnt, choosed_p = 1, tmp;
     do {
-        pi = propagate(G, d, status);
-        if (status == CONFLICT || status == SOLVED) return;
+        pi_cnt = 0;
+        propagate(G, d, status);
+        if (status == CONFLICT || status == SOLVED) {
+            return choosed_p;
+        }
 
+        unordered_set<short> unpaint;
         for (char i = 0; i < SIZE; i++) {
             for (char j = 1; j <= SIZE; j++) {
-                if (G[i][j] == 'u') {
-                    pi = probe(G, d, i, j, status);
-                }
-                if (status == CONFLICT || status == SOLVED) return;
-                if (status == PAINTED) goto END_PROBE;
+                if (G[i][j] == 'u') unpaint.insert(i * 100 + j);
             }
         }
-    END_PROBE:
-        if (pi.empty()) break;
-    } while (!pi.empty());
+
+        for (short p : unpaint) {
+            char row = p / 100, col = p % 100;
+            tmp = probe(G, d, row, col, status);
+            if (tmp > pi_cnt) {
+                pi_cnt = tmp;
+                choosed_p = p;
+            }
+            if (status == CONFLICT || status == SOLVED) return choosed_p;
+            if (status == PAINTED) break;
+        }
+    } while (pi_cnt > 0);
+    return choosed_p;
+}
+
+void backtracking(Board &G, const Clues &d, Status &status) {
+    fp1(G, d, status);
+    if (status == CONFLICT || status == SOLVED) return;
+
+    Status status_gp0 = Status::INCOMPLETE;
+    Status status_gp1 = Status::INCOMPLETE;
+    vector<string> G_p0(G);
+    vector<string> G_p1(G);
+
+    char row, col;
+    for (char i = 0; i < SIZE; i++) {
+        for (char j = 1; j <= SIZE; j++) {
+            if (G[i][j] == 'u') row = i, col = j;
+        }
+    }
+
+    G_p0[row][col] = '0';
+    backtracking(G_p0, d, status_gp0);
+    if (status_gp0 == SOLVED) {
+        G = G_p0, status = status_gp0;
+        return;
+    }
+    G_p1[row][col] = '1';
+    backtracking(G_p1, d, status_gp1);
+    if (status_gp1 == SOLVED) G = G_p1, status = status_gp1;
 }
 
 #endif
