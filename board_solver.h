@@ -25,7 +25,7 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
 
     while (!list_G.empty()) {
         auto front = list_G.begin();
-        string s = *front;
+        string_view s = *front;
         char index = s[0];
 
         if (!fix(s, d[index], SIZE, d[index].size())) {
@@ -35,10 +35,9 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
 
         string p = paint(s, d[index], SIZE, d[index].size());
         s = s.substr(1);
-        UpdateSet pi;
         for (int i = 0; i < SIZE; i++) {
             if (s[i] == 'u' && p[i] != s[i]) {
-                pi.insert(index * 100 + i);
+                PI.insert(index * 100 + i);
                 G[index][i + 1] = p[i];
                 if (index < SIZE) {
                     G[i + SIZE][index + 1] = p[i];
@@ -49,7 +48,6 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
                 }
             }
         }
-        if (!pi.empty()) PI.insert(pi.begin(), pi.end());
         list_G.erase(front);
     }
 
@@ -60,7 +58,7 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
     return PI;
 }
 
-UpdateSet probe(Board &G, const Clues &d, char row, char col, Status &status) {
+short probe(Board &G, const Clues &d, char row, char col, Status &status) {
     Status status_gp0 = Status::INCOMPLETE;
     Status status_gp1 = Status::INCOMPLETE;
     vector<string> G_p0(G);
@@ -73,18 +71,23 @@ UpdateSet probe(Board &G, const Clues &d, char row, char col, Status &status) {
 
     if (status_gp0 == Status::CONFLICT && status_gp1 == Status::CONFLICT) {
         status = Status::CONFLICT;
-        return UpdateSet();
+        return 0;  // size of pi
     }
 
     UpdateSet pi;
     Board *src = &G_p0;
-    if (status_gp0 == Status::CONFLICT)
-        pi = pi_gp0;
-    else if (status_gp1 == Status::CONFLICT)
+    if (status_gp0 == Status::CONFLICT) {
         pi = pi_gp1, src = &G_p1;
-    else
-        set_intersection(pi_gp0.begin(), pi_gp0.end(), pi_gp1.begin(), pi_gp1.end(),
-                         inserter(pi, pi.begin()));
+    } else if (status_gp1 == Status::CONFLICT) {
+        pi = pi_gp0;
+    } else {
+        for (short p : pi_gp0) {
+            if (G_p0[p / 100][p % 100 + 1] == G_p1[p / 100][p % 100 + 1]) pi.insert(p);
+        }
+        for (short p : pi_gp1) {
+            if (G_p0[p / 100][p % 100 + 1] == G_p1[p / 100][p % 100 + 1]) pi.insert(p);
+        }
+    }
 
     if (!pi.empty()) {
         for (short p : pi) {
@@ -95,7 +98,7 @@ UpdateSet probe(Board &G, const Clues &d, char row, char col, Status &status) {
     } else {
         status = Status::INCOMPLETE;
     }
-    return pi;
+    return pi.size();
 }
 
 void fp1(Board &G, const Clues &d, Status &status) {
