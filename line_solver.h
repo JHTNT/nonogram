@@ -31,7 +31,7 @@ bool fix1(string_view s, const vector<short> &d, short i, short j) {
     if (j >= 1 && i >= d[j - 1]) {
         for (int k = i - d[j - 1] + 1; k <= i; k++)
             if (s[k] == '0') return false;
-        if (i == 1 || s[i - d[j - 1]] != '1')
+        if (i - d[j - 1] == 0 || s[i - d[j - 1]] != '1')
             return fix(s, d, i - d[j - 1] - 1, j - 1);
         else
             return false;
