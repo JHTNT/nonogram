@@ -4,9 +4,9 @@
 #include "config.h"
 #include "file_io.h"
 
-int main() {
-    in.open("data/one_testcase.in");
-    out.open("data/one_testcase.out");
+int main(int argc, char *argv[]) {
+    in.open((string) argv[1] + ".in");
+    out.open((string) argv[1] + ".out");
 
     string testcase;
 
