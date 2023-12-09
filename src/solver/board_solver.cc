@@ -1,15 +1,8 @@
-#ifndef BOARD_SOLVER
-#define BOARD_SOLVER
-#include "line_solver.h"
+#include "board_solver.h"
 
-typedef vector<string> Board;
-typedef vector<vector<short>> Clues;
-typedef unordered_set<short> UpdateSet;
+using namespace std;
 
-enum Status { INCOMPLETE, CONFLICT, PAINTED, SOLVED };
-static string const_status[] = {"INCOMPLETE", "CONFLICT", "PAINTED", "SOLVED"};
-
-bool check_all_painted(const vector<string> &G) {
+bool check_all_painted(const std::vector<std::string> &G) {
     for (int i = 0; i < SIZE; i++)
         for (int j = 0; j <= SIZE; j++)
             if (G[i][j] == 'u') return false;
@@ -17,8 +10,8 @@ bool check_all_painted(const vector<string> &G) {
 }
 
 UpdateSet propagate(Board &G, const Clues &d, Status &status) {
-    UpdateSet PI;                  // set of updated pixels
-    unordered_set<string> list_G;  // set of lines to be checked
+    UpdateSet PI;                            // set of updated pixels
+    std::unordered_set<std::string> list_G;  // set of lines to be checked
 
     for (int i = 0; i < SIZE; i++) {
         list_G.insert(G[i]);
@@ -26,7 +19,7 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
 
     while (!list_G.empty()) {
         auto front = list_G.begin();
-        string_view s = *front;
+        std::string_view s = *front;
         char index = s[0];
 
         if (!fix(s, d[index], SIZE, d[index].size())) {
@@ -34,7 +27,7 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
             return UpdateSet();
         }
 
-        string p = paint(s, d[index], SIZE, d[index].size());
+        std::string p = paint(s, d[index], SIZE, d[index].size());
         s = s.substr(1);
         for (int i = 0; i < SIZE; i++) {
             if (s[i] == 'u' && p[i] != s[i]) {
@@ -62,8 +55,8 @@ UpdateSet propagate(Board &G, const Clues &d, Status &status) {
 short probe(Board &G, const Clues &d, char row, char col, Status &status) {
     Status status_gp0 = Status::INCOMPLETE;
     Status status_gp1 = Status::INCOMPLETE;
-    vector<string> G_p0(G);
-    vector<string> G_p1(G);
+    std::vector<std::string> G_p0(G);
+    std::vector<std::string> G_p1(G);
 
     G_p0[row][col] = '0';
     UpdateSet pi_gp0 = propagate(G_p0, d, status_gp0);
@@ -115,7 +108,7 @@ short fp1(Board &G, const Clues &d, Status &status) {
             return choosed_p;
         }
 
-        unordered_set<short> unpaint;
+        std::unordered_set<short> unpaint;
         for (char i = 0; i < SIZE; i++) {
             for (char j = 1; j <= SIZE; j++) {
                 if (G[i][j] == 'u') unpaint.insert(i * 100 + j);
@@ -142,8 +135,8 @@ void backtracking(Board &G, const Clues &d, Status &status) {
 
     Status status_gp0 = Status::INCOMPLETE;
     Status status_gp1 = Status::INCOMPLETE;
-    vector<string> G_p0(G);
-    vector<string> G_p1(G);
+    std::vector<std::string> G_p0(G);
+    std::vector<std::string> G_p1(G);
 
     char row, col;
     for (char i = 0; i < SIZE; i++) {
@@ -162,5 +155,3 @@ void backtracking(Board &G, const Clues &d, Status &status) {
     backtracking(G_p1, d, status_gp1);
     if (status_gp1 == SOLVED) G = G_p1, status = status_gp1;
 }
-
-#endif

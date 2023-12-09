@@ -1,18 +1,6 @@
-#ifndef LINE_SOLVE
-#define LINE_SOLVE
-#include <bits/stdc++.h>
-
-#include "config.h"
+#include "line_solver.h"
 
 using namespace std;
-
-bool fix(string_view s, const vector<short> &d, short i, short j);
-bool fix0(string_view s, const vector<short> &d, short i, short j);
-bool fix1(string_view s, const vector<short> &d, short i, short j);
-string paint(string_view s, const vector<short> &d, short i, short j);
-string paint0(string_view s, const vector<short> &d, short i, short j);
-string paint1(string_view s, const vector<short> &d, short i, short j);
-string merge(string_view s, string_view t);
 
 bool fix(string_view s, const vector<short> &d, short i, short j) {
     if (i == 0 || i == -1) {
@@ -73,5 +61,3 @@ string merge(string_view s, string_view t) {
     }
     return m;
 }
-
-#endif

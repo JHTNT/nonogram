@@ -1,15 +1,8 @@
-#ifndef FILE_IO
-#define FILE_IO
-#include <fstream>
-
-#include "config.h"
+#include "file_io.h"
 
 using namespace std;
 
-ifstream in;
-ofstream out;
-
-void get_testcase(vector<vector<short>> &clues) {
+void get_testcase(ifstream &in, vector<vector<short>> &clues) {
     short n, i = SIZE;
     char c;
     while (i < SIZE * 2) {
@@ -26,5 +19,3 @@ void get_testcase(vector<vector<short>> &clues) {
         if (c == '\n') i++;
     }
 }
-
-#endif
