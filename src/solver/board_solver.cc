@@ -2,59 +2,74 @@
 
 using namespace std;
 
-bool check_all_painted(const std::vector<std::string> &G) {
+Board::Board() : state{INCOMPLETE} {
+    lines = vector<Line>(SIZE * 2);
+    for (int i = 0; i < SIZE * 2; i++) lines[i] = Line(i);
+    for (int i = 1; i <= SIZE; i++) {
+        for (int j = 1; j <= SIZE; j++) {
+            unpainted.insert(i * 100 + j);
+        }
+    }
+}
+
+Board::Board(const Board &G) { *this = G; }
+
+bool Board::check_all_painted(const std::vector<std::string> &G) {
     for (int i = 0; i < SIZE; i++)
         for (int j = 0; j <= SIZE; j++)
             if (G[i][j] == 'u') return false;
     return true;
 }
 
-UpdateSet propagate(Board &G, const Clues &d, Status &status) {
+bool Board::is_painted(short i, short j) {
+    if 
+}
+
+UpdateSet Board::propagate(const Clues &d, State &status) {
     UpdateSet PI;                            // set of updated pixels
-    std::unordered_set<std::string> list_G;  // set of lines to be checked
+    unordered_set<Line, Line::Hash> list_G;  // set of lines to be checked
 
     for (int i = 0; i < SIZE; i++) {
-        list_G.insert(G[i]);
+        list_G.insert(this->get_line(i));
     }
 
     while (!list_G.empty()) {
-        auto front = list_G.begin();
-        std::string_view s = *front;
-        char index = s[0];
+        // auto front = list_G.begin();
+        // std::string_view s = *front;
+        Line s = *list_G.begin();
+        char index = s.get_index();
 
-        if (!fix(s, d[index], SIZE, d[index].size())) {
-            status = Status::CONFLICT;
+        if (!s.fix(d[index], SIZE, d[index].size())) {
+            status = State::CONFLICT;
             return UpdateSet();
         }
 
-        std::string p = paint(s, d[index], SIZE, d[index].size());
-        s = s.substr(1);
-        for (int i = 0; i < SIZE; i++) {
-            if (s[i] == 'u' && p[i] != s[i]) {
-                PI.insert(index * 100 + i);
-                G[index][i + 1] = p[i];
+        s.paint(d[index], SIZE, d[index].size());
+        for (int j = 0; j < SIZE; j++) {
+            if (!is_painted(index, j)) {
+                PI.insert(index * 100 + j);
                 if (index < SIZE) {
-                    G[i + SIZE][index + 1] = p[i];
-                    list_G.insert(G[i + SIZE]);
+                    lines[j + SIZE].set(index + 1, s.get(j));
+                    list_G.insert(G[j + SIZE]);
                 } else {
-                    G[i][index - SIZE + 1] = p[i];
-                    list_G.insert(G[i]);
+                    lines[j].set(index - SIZE + 1, s.get(j));
+                    list_G.insert(G[j]);
                 }
             }
         }
-        list_G.erase(front);
+        list_G.erase(s);
     }
 
     if (check_all_painted(G))
-        status = Status::SOLVED;
+        status = State::SOLVED;
     else
-        status = Status::INCOMPLETE;
+        status = State::INCOMPLETE;
     return PI;
 }
 
-short probe(Board &G, const Clues &d, char row, char col, Status &status) {
-    Status status_gp0 = Status::INCOMPLETE;
-    Status status_gp1 = Status::INCOMPLETE;
+short Board::probe(Board &G, const Clues &d, char row, char col, State &status) {
+    State status_gp0 = State::INCOMPLETE;
+    State status_gp1 = State::INCOMPLETE;
     std::vector<std::string> G_p0(G);
     std::vector<std::string> G_p1(G);
 
@@ -63,16 +78,16 @@ short probe(Board &G, const Clues &d, char row, char col, Status &status) {
     G_p1[row][col] = '1';
     UpdateSet pi_gp1 = propagate(G_p1, d, status_gp1);
 
-    if (status_gp0 == Status::CONFLICT && status_gp1 == Status::CONFLICT) {
-        status = Status::CONFLICT;
+    if (status_gp0 == State::CONFLICT && status_gp1 == State::CONFLICT) {
+        status = State::CONFLICT;
         return 0;  // size of pi
     }
 
     UpdateSet pi;
     Board *src = &G_p0;
-    if (status_gp0 == Status::CONFLICT) {
+    if (status_gp0 == State::CONFLICT) {
         pi = pi_gp1, src = &G_p1;
-    } else if (status_gp1 == Status::CONFLICT) {
+    } else if (status_gp1 == State::CONFLICT) {
         pi = pi_gp0;
     } else {
         for (short p : pi_gp0) {
@@ -92,14 +107,14 @@ short probe(Board &G, const Clues &d, char row, char col, Status &status) {
             else
                 G[c][r - SIZE + 1] = (*src)[r][c + 1];
         }
-        status = Status::PAINTED;
+        status = State::PAINTED;
     } else {
-        status = Status::INCOMPLETE;
+        status = State::INCOMPLETE;
     }
     return pi.size();
 }
 
-short fp1(Board &G, const Clues &d, Status &status) {
+short Board::fp1(Board &G, const Clues &d, State &status) {
     short pi_cnt, choosed_p = 1, tmp;
     do {
         pi_cnt = 0;
@@ -129,12 +144,12 @@ short fp1(Board &G, const Clues &d, Status &status) {
     return choosed_p;
 }
 
-void backtracking(Board &G, const Clues &d, Status &status) {
+void Board::backtracking(Board &G, const Clues &d, State &status) {
     fp1(G, d, status);
     if (status == CONFLICT || status == SOLVED) return;
 
-    Status status_gp0 = Status::INCOMPLETE;
-    Status status_gp1 = Status::INCOMPLETE;
+    State status_gp0 = State::INCOMPLETE;
+    State status_gp1 = State::INCOMPLETE;
     std::vector<std::string> G_p0(G);
     std::vector<std::string> G_p1(G);
 

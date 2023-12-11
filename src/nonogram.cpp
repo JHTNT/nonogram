@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
         Board board(SIZE * 2, string(SIZE + 1, 'u'));
         for (int i = 0; i < SIZE * 2; i++) board[i][0] = i;
 
-        Status status = INCOMPLETE;
+        State status = INCOMPLETE;
         fout << testcase << "\n";
         get_testcase(fin, clues);
 

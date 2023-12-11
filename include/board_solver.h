@@ -2,21 +2,32 @@
 #define BOARD_SOLVER
 
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "line_solver.h"
 
-typedef std::vector<std::string> Board;
+// typedef std::vector<std::string> Board;
 typedef std::vector<std::vector<short>> Clues;
 typedef std::unordered_set<short> UpdateSet;
 
-enum Status { INCOMPLETE, CONFLICT, PAINTED, SOLVED };
+enum State { INCOMPLETE, CONFLICT, PAINTED, SOLVED };
 static std::string const_status[] = {"INCOMPLETE", "CONFLICT", "PAINTED", "SOLVED"};
 
-bool check_all_painted(const std::vector<std::string> &G);
-UpdateSet propagate(Board &G, const Clues &d, Status &status);
-short probe(Board &G, const Clues &d, char row, char col, Status &status);
-void backtracking(Board &G, const Clues &d, Status &status);
+class Board {
+    State state;
+    vector<Line> lines;
+    std::unordered_set<short> unpainted;
+
+   public:
+    Board();
+    Board(const Board &G);
+    bool is_painted(short i, short j);
+    const bool check_all_painted(const std::vector<std::string> &G);
+    UpdateSet propagate(const Clues &d, State &status);
+    short probe(Board &G, const Clues &d, char row, char col, State &status);
+    void backtracking(Board &G, const Clues &d, State &status);
+    Line get_line(short i);
+};
 
 #endif

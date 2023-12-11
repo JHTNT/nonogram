@@ -2,62 +2,79 @@
 
 using namespace std;
 
-bool fix(string_view s, const vector<short> &d, short i, short j) {
+Line::Line(short i) : index{i}, pixels{string(SIZE, 'u')} {}
+
+Line::Line(const Line& l) { *this = l; }
+
+char Line::get(short i) { return this->pixels[i - 1]; }
+
+void Line::set(short i, char c) { this->pixels[i - 1] = c; }
+
+short Line::get_index() { return index; }
+
+bool Line::fix(const vector<short>& d, short i, short j) {
     if (i == 0 || i == -1) {
         if (j == 0) return true;
         return false;  // j >= 1
     }
-    return fix0(s, d, i, j) || fix1(s, d, i, j);
+    return fix0(d, i, j) || fix1(d, i, j);
 }
 
-bool fix0(string_view s, const vector<short> &d, short i, short j) {
-    if (s[i] != '1') return fix(s, d, i - 1, j);
+bool Line::fix0(const vector<short>& d, short i, short j) {
+    if (this->get(i) != '1') return fix(d, i - 1, j);
     return false;
 }
 
-bool fix1(string_view s, const vector<short> &d, short i, short j) {
+bool Line::fix1(const vector<short>& d, short i, short j) {
     if (j >= 1 && i >= d[j - 1]) {
         for (int k = i - d[j - 1] + 1; k <= i; k++)
-            if (s[k] == '0') return false;
-        if (i - d[j - 1] == 0 || s[i - d[j - 1]] != '1')
-            return fix(s, d, i - d[j - 1] - 1, j - 1);
+            if (this->get(k) == '0') return false;
+        if (i - d[j - 1] == 0 || this->get(i - d[j - 1]) != '1')
+            return fix(d, i - d[j - 1] - 1, j - 1);
         else
             return false;
     }
     return false;
 }
 
-string paint(string_view s, const vector<short> &d, short i, short j) {
-    if (i <= 0) return "";
+void Line::paint(const vector<short>& d, short i, short j) {
+    if (i <= 0) return;
 
-    bool f0 = fix0(s, d, i, j), f1 = fix1(s, d, i, j);
+    bool f0 = fix0(d, i, j), f1 = fix1(d, i, j);
     if (f0 && !f1) {
-        return paint0(s, d, i, j);
+        paint0(d, i, j);
     } else if (!f0 && f1) {
-        return paint1(s, d, i, j);
+        paint1(d, i, j);
     } else {
-        return merge(paint0(s, d, i, j), paint1(s, d, i, j));
+        Line t = Line(*this);
+        this->paint0(d, i, j);
+        t.paint1(d, i, j);
+        merge(*this, t, i);
     }
 }
 
-string paint0(string_view s, const vector<short> &d, short i, short j) {
-    return paint(s, d, i - 1, j) + '0';
+void Line::paint0(const vector<short>& d, short i, short j) {
+    paint(d, i - 1, j);
+    this->set(i, '0');
 }
 
-string paint1(string_view s, const vector<short> &d, short i, short j) {
-    if (i == d[j - 1]) return string(d[j - 1], '1');
-    return paint(s, d, i - d[j - 1] - 1, j - 1) + '0' + string(d[j - 1], '1');
+void Line::paint1(const vector<short>& d, short i, short j) {
+    if (i == d[j - 1]) {
+        for (int k = 0; k < i; k++) this->set(k, '1');
+    } else {
+        this->set(i - d[j - 1], '0');
+        for (int k = i - d[j - 1] + 1; k <= i; k++) this->set(k, '1');
+        paint(d, i - d[j - 1] - 1, j - 1);
+    }
 }
 
-string merge(string_view s, string_view t) {
-    string m = "";
-    for (int k = 0; k < s.size(); k++) {
-        if (s[k] == '0' && t[k] == '0')
-            m += '0';
-        else if (s[k] == '1' && t[k] == '1')
-            m += '1';
+void Line::merge(Line l, Line t, short n) {
+    for (int k = 1; k <= n; k++) {
+        if (l.get(k) == '0' && t.get(k) == '0')
+            l.set(k, '0');
+        else if (l.get(k) == '1' && t.get(k) == '1')
+            l.set(k, '1');
         else
-            m += 'u';
+            l.set(k, 'u');
     }
-    return m;
 }
